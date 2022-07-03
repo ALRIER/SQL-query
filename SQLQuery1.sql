@@ -1295,6 +1295,152 @@ ON c.id = m.country_id
 -- Group by country name alias
 GROUP BY country;
 
+/*-----------------------COUNT using CASE WHEN--------------------------------
+
+Do the number of soccer matches played in a given European country differ
+across seasons? We will use the European Soccer Database to answer this
+question.
+
+You will examine the number of matches played in 3 seasons within each
+country listed in the database. This is much easier to explore with each
+season's matches in separate columns. Using the country and unfiltered match
+table, you will count the number of matches played in each country during the
+2012/2013, 2013/2014, and 2014/2015 match seasons.
+
+Create 3 CASE WHEN statements counting the matches played in each country
+across the 3 seasons.*/
+SELECT
+	c.name AS country,
+    -- Count matches in each of the 3 seasons
+	COUNT(CASE WHEN m.season = '2012/2013' THEN m.id END) AS matches_2012_2013,
+	COUNT(CASE WHEN m.season = '2013/2014' THEN m.id END) AS matches_2013_2014,
+	COUNT(CASE WHEN m.season = '2014/2015' THEN m.id END) AS matches_2014_2015
+FROM country AS c
+LEFT JOIN match AS m
+ON c.id = m.country_id
+-- Group by country name alias
+GROUP BY country;
+/*
+->Create 3 CASE statements to "count" matches in the '2012/2013', '2013/2014',
+and '2014/2015' seasons, respectively.
+->Have each CASE statement return a 1 for every match you want to include,
+and a 0 for every match to exclude.
+->Wrap the CASE statement in a SUM to return the total matches played in
+each season.
+->Group the query by the country name alias.
+
+
+TABLE MACH
+id	country_id season	stage	date	hometeam_id	awayteam_id	home_goal away_goal
+757	1	2011/2012	1	2011-07-29	1773	8635	2	1
+758	1	2011/2012	1	2011-07-30	9998	9985	1	1
+759	1	2011/2012	1	2011-07-30	9987	9993	3	1
+760	1	2011/2012	1	2011-07-30	9991	9984	0	1
+761	1	2011/2012	1	2011-07-30	9994	10000	0	0
+762	1	2011/2012	1	2011-07-30	8571	9989	1	1
+763	1	2011/2012	1	2011-07-30	8203	9997	2	1
+764	1	2011/2012	1	2011-07-31	8342	10001	5	0
+765	1	2011/2012	10	2011-10-16	8342	9991	2	0
+766	1	2011/2012	10	2011-10-16	8635	9985	5	0
+767	1	2011/2012	10	2011-10-15	9997	9993	2	4
+768	1	2011/2012	10	2011-10-15	10000	9989	1	2
+769	1	2011/2012	10	2011-10-15	1773	10001	1	1
+770	1	2011/2012	10	2011-10-15	9994	9987	3	1
+771	1	2011/2012	10	2011-10-15	8203	9984	1	2
+772	1	2011/2012	10	2011-10-15	9998	8571	3	1
+773	1	2011/2012	11	2011-10-23	9985	10000	1	0
+774	1	2011/2012	11	2011-10-22	9987	9998	2	0
+775	1	2011/2012	11	2011-10-22	9991	9994	3	1
+776	1	2011/2012	11	2011-10-22	9993	8203	2	2
+777	1	2011/2012	11	2011-10-23	8571	8342	2	1
+778	1	2011/2012	11	2011-10-22	9989	9997	0	2
+
+TABLE
+COUNTRY
+
+id	name
+1	Belgium
+1729	England
+4769	France
+7809	Germany
+10257	Italy
+13274	Netherlands
+15722	Poland
+17642	Portugal
+19694	Scotland
+21518	Spain
+24558	Switzerland
+*/
+SELECT
+	c.name AS country,
+    -- Sum the total records in each season where the home team won
+	SUM(CASE WHEN m.season = '2012/2013' AND m.home_goal > m.away_goal
+        THEN 1 ELSE 0 END) AS matches_2012_2013,
+	SUM(CASE WHEN m.season = '2013/2014' AND m.home_goal > m.away_goal
+        THEN 1 ELSE 0 END) AS matches_2013_2014,
+	SUM(CASE WHEN m.season = '2014/2015' AND m.home_goal > m.away_goal
+        THEN 1 ELSE 0 END) AS matches_2014_2015
+FROM country AS c
+LEFT JOIN match AS m
+ON c.id = m.country_id
+-- Group by country name alias
+GROUP BY country;
+
+/*------------------  Calculating percent with CASE and AVG  ------------------
+
+CASE statements will return any value you specify in your THEN clause.
+This is an incredibly powerful tool for robust calculations and data
+manipulation when used in conjunction with an aggregate statement.
+One key task you can perform is using CASE inside an AVG function to calculate
+a percentage of information in your database.
+
+Here's an example of how you set that up:
+
+AVG(CASE WHEN condition_is_met THEN 1
+         WHEN condition_is_not_met THEN 0 END)
+
+With this approach, it's important to accurately specify which records count
+as 0, otherwise your calculations may not be correct!
+
+Your task is to examine the number of wins, losses, and ties in each country.
+The matches table is filtered to include all matches from the 2013/2014 and
+2014/2015 seasons.
+
+Create 3 CASE statements to COUNT the total number of home team wins,
+away team wins, and ties, which will allow you to examine the total number
+of records.*/
+
+SELECT c.name AS country,
+    -- Count the home wins, away wins, and ties in each country
+COUNT(CASE WHEN m.home_goal > m.away_goal THEN m.id END) AS home_wins,
+COUNT(CASE WHEN m.home_goal < m.away_goal THEN m.id END) AS away_wins,
+COUNT(CASE WHEN m.home_goal = m.away_goal THEN m.id END) AS ties
+FROM country AS c
+LEFT JOIN matches AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+/*Calculate the percentage of matches tied using a CASE statement inside AVG.
+Fill in the logical operators for each statement. Alias your
+columns as ties_2013_2014 and ties_2014_2015, respectively.*/
+
+SELECT c.name AS country,
+    -- Calculate the percentage of tied games in each season
+AVG(CASE WHEN m.season= '2013/2014' AND m.home_goal = m.away_goal
+   THEN 1 WHEN m.season= '2013/2014' AND m.home_goal != m.away_goal
+   THEN 0 END) AS ties_2013_2014,
+AVG(CASE WHEN m.season= '2014/2015' AND m.home_goal = m.away_goal
+   THEN 1 WHEN m.season= '2014/2015' AND m.home_goal != m.away_goal
+   THEN 0 END) AS ties_2014_2015
+FROM country AS c
+LEFT JOIN matches AS m
+ON c.id = m.country_id
+GROUP BY country;
+
+
+
+
+
 
 
 
